@@ -21,7 +21,6 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public void createProduct(ProductRequest productRequest) {
-
         productRepository.save(productMapper.mapToProduct(productRequest));
     }
 
