@@ -7,10 +7,10 @@ import org.xyz.cartsvc.dto.UserClientResponse;
 
 import java.util.Optional;
 
-@FeignClient(name = "user-service", url = "http://localhost:8081")
+@FeignClient(name = "user-service", url = "http://localhost:8083")
 public interface UserClient {
 
-    @GetMapping("/api/v1/users/{userId}")
-    Optional<UserClientResponse> getUserById(@PathVariable("userId") Long id);
+    @GetMapping("/api/v1/customers/{id}")
+    Optional<UserClientResponse> getUserById(@PathVariable("id") Long id);
 
 }

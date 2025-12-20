@@ -5,15 +5,15 @@ import org.springframework.http.HttpStatus;
 import org.xyz.cartsvc.enums.CartErrorInfo;
 
 @Getter
-public class ProductOutOfStockException extends CartException{
+public class ProductOutOfStockException extends RuntimeException{
 
-    public ProductOutOfStockException(CartErrorInfo productErrorInfo) {
-        super(productErrorInfo);
+    private final CartErrorInfo cartErrorInfo;
+
+    public ProductOutOfStockException(CartErrorInfo cartErrorInfo) {
+        super(cartErrorInfo.getMessage());
+        this.cartErrorInfo = cartErrorInfo;
     }
 
-    @Override
-    public HttpStatus getHttpStatus() {
-        return HttpStatus.BAD_REQUEST;
-    }
+
 
 }

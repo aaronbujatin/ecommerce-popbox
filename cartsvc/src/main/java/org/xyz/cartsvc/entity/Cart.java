@@ -1,13 +1,13 @@
 package org.xyz.cartsvc.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.xyz.cartsvc.enums.CartStatus;
 import java.time.LocalDateTime;
 
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Setter
@@ -30,7 +30,9 @@ public class Cart {
     private Long userId;
     @Enumerated(EnumType.STRING)
     private CartStatus status;
+    @CreationTimestamp
     private LocalDateTime createdAt;
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
     private LocalDateTime convertedAt;
 
