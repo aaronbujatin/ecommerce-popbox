@@ -1,0 +1,16 @@
+server:
+  port: 8083
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dbuser
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+security:
+  jwt:
+    secret-key: a25307b04c9aae82fd20b72ceba9e77ac40e8b1f10d7c3b0dcb2ab7d603664a3
+    expiration-time: 900000 #15 Minutes

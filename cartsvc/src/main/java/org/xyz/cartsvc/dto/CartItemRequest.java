@@ -1,9 +1,0 @@
-package org.xyz.cartsvc.dto;
-
-public record CartItemRequest(
-        Long cartId,
-        Long userId,
-        Long productId,
-        int quantity
-) {
-}
