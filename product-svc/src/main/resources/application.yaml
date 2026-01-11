@@ -8,9 +8,13 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create
-    show-sql: true
+      ddl-auto: update
+    show-sql: false
     defer-datasource-initialization: true
   sql:
     init:
-      mode: always
+      mode: never
+#  flyway:
+#    enabled: true
+#    baseline-on-migrate: true
+#    baseline-version: '0'

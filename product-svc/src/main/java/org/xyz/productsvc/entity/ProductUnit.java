@@ -22,6 +22,7 @@ public class ProductUnit {
     private ProductUnitType productUnitType;
     private BigDecimal price;
     private int stock;
+    private String imageUrl;
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;

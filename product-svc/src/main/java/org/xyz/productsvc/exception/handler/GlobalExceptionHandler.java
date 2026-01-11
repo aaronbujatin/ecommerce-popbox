@@ -1,6 +1,5 @@
-package org.xyz.productsvc.exceptionhandler;
+package org.xyz.productsvc.exception.handler;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,10 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.xyz.productsvc.dto.ApiErrorResponse;
 import org.xyz.productsvc.exception.ResourceNotFoundException;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.Locale;
 
 @Slf4j
 @RestControllerAdvice

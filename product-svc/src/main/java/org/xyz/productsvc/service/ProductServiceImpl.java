@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.xyz.productsvc.dto.ProductRequest;
 import org.xyz.productsvc.dto.ProductResponse;
+import org.xyz.productsvc.dto.ProductBatchReq;
+import org.xyz.productsvc.dto.ProductUnitResponse;
 import org.xyz.productsvc.entity.Product;
 import org.xyz.productsvc.enums.ProductErrorInfo;
 import org.xyz.productsvc.exception.ResourceNotFoundException;
@@ -35,7 +37,7 @@ public class ProductServiceImpl implements ProductService{
         Product product =  productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ProductErrorInfo.PRODUCT_NOT_FOUND));
 
-        ProductResponse productResponse = null;
+        ProductResponse productResponse = mapToProductResponse(product);
 
         log.info("Returning the product with id of {} {}", id, productResponse);
         return productResponse;
@@ -56,6 +58,51 @@ public class ProductServiceImpl implements ProductService{
 //        return productResponses;
 
         return null;
+    }
+
+    @Override
+    public List<ProductResponse> getAllProductsByFilter(List<ProductBatchReq> productBatchReqs) {
+
+//        var productIds = productBatchReqs.stream().map(ProductBatchReq::id).toList();
+
+//        var product = productRepository.findAllById(productIds)
+//                .stream()
+//                .map(p -> new ProductResponse(
+//                            p.getId(),
+//                            p.getName(),
+//                            p.getDescription(),
+//                            p.getImages(),
+//                            p.getCategory(),
+//                            p.getProductUnits()
+//                                    .stream()
+//                                    .filter()
+//                        )
+//                );
+
+
+        return List.of();
+    }
+
+    private ProductResponse mapToProductResponse(Product product){
+
+        return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getImages(),
+                product.getCategory().getName(),
+                product.getProductUnits()
+                        .stream()
+                        .map(unit -> new ProductUnitResponse(
+                                        unit.getId(),
+                                        unit.getProductUnitType(),
+                                        unit.getPrice(),
+                                        unit.getStock(),
+                                        unit.getImageUrl()
+                                )
+                        )
+                        .toList()
+        );
     }
 
 
