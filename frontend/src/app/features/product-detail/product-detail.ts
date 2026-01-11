@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../core/product-service';
 import { Product } from '../../model/product';
 import { CommonModule, CurrencyPipe } from '@angular/common';
+import { HotToastService } from '@ngxpert/hot-toast';
 
 @Component({
   selector: 'app-product-detail',
@@ -12,6 +13,7 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 })
 export class ProductDetail implements OnInit {
 
+  toast = inject(HotToastService)
   productService = inject(ProductService)
   activatedRoute = inject(ActivatedRoute)
   router = inject(Router)
@@ -24,6 +26,7 @@ export class ProductDetail implements OnInit {
 
   ngOnInit(): void {
     const id = this.activatedRoute.snapshot.params['id'];
+    this.customToast()
     this.getProductById(id);
   }
 
@@ -42,21 +45,31 @@ export class ProductDetail implements OnInit {
       }
     });
   }
-  selectedVariant: string = 'single';
+  selectedVariant: string = 'SINGLE_BOX';
 
-  variants = [
-    {
-      id: 'single',
-      name: 'Single Box',
-      image: 'assets/images/single-box.jpg'
-    },
-    {
-      id: 'whole',
-      name: 'Whole Set',
-      image: 'assets/images/whole-set.jpg'
-    }
-  ];
-
+  customToast() {
+    this.toast.success(
+      `
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+      <span>ADD TO CART SUCCESSFULLY</span>
+       <a href="#" class="text-sm font-medium leading-none text-[#d2001e] underline hover:no-underline dark:text-white">
+            VIEW CART
+        </a>
+    </div>
+    `,
+      {
+        duration: 5000, // Longer duration so users can click
+        style: {
+          padding: '16px',
+          color: '#FFFFFF',
+          background: '#000000',
+          fontFamily: 'Cabin, sans-serif',
+        },
+        position: 'top-right',
+        icon: ''
+      }
+    );
+  }
 
   selectVariant(variantId: string): void {
     this.selectedVariant = variantId;
@@ -64,6 +77,10 @@ export class ProductDetail implements OnInit {
 
   isSelected(variantId: string): boolean {
     return this.selectedVariant === variantId;
+  }
+
+  addToCart() {
+    
   }
 
 

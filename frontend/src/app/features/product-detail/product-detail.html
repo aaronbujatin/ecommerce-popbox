@@ -67,7 +67,7 @@
                             'border-gray-100 ': !isSelected(product()!.productUnits[0].unitType)}"
                         class="flex items-center h-15 w-48 gap-3 px-4 py-2 border transition-all cursor-pointer bg-gray-100">
 
-                        <img [src]="imageSrcSingleBox" class="w-14 h-14 object-cover"  alt="Product variant" />
+                        <img [src]="imageSrcSingleBox" class="w-14 h-14 object-cover" alt="Product variant" />
 
                         <span [ngClass]="{'text-gray-900': isSelected(product()!.productUnits[0].unitType), 
                                 'text-gray-600': !isSelected(product()!.productUnits[0].unitType)}"
@@ -99,8 +99,9 @@
                     </button>
                 </div>
                 }
+
                 <div class="flex gap-4 my-2">
-                    <button type="button"
+                    <button type="button" (click)="addToCart()"
                         class="text-white bg-black h-11 w-48 box-border border border-transparent shadow-xs font-medium leading-5 text-sm px-4 py-2.5 cursor-pointer">ADD
                         TO CART</button>
 
