@@ -1,6 +1,7 @@
 package org.xyz.cartsvc.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.xyz.cartsvc.enums.CartReqStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -10,7 +11,8 @@ public record CartResponse(
         Long id,
         Long userId,
         BigDecimal totalPrice,
-        List<CartItemResponse> cartItems
+        List<CartItemResponse> cartItems,
+        CartReqStatus reqStatus
 ) {
 }
 

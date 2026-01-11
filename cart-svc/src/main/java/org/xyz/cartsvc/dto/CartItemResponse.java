@@ -1,5 +1,7 @@
 package org.xyz.cartsvc.dto;
 
+import org.xyz.cartsvc.enums.CartItemStatus;
+
 import java.math.BigDecimal;
 
 public record CartItemResponse(
@@ -11,6 +13,7 @@ public record CartItemResponse(
         String image,
         String unitType,
         int quantity,
-        BigDecimal subTotal
+        BigDecimal subTotal,
+        CartItemStatus status
 ) {
 }

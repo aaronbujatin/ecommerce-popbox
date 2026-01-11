@@ -11,16 +11,14 @@ import org.xyz.cartsvc.entity.Cart;
 import org.xyz.cartsvc.entity.CartItem;
 import org.xyz.cartsvc.enums.CartErrorInfo;
 import org.xyz.cartsvc.enums.CartItemStatus;
-import org.xyz.cartsvc.exception.ProductOutOfStockException;
+import org.xyz.cartsvc.enums.CartReqStatus;
+import org.xyz.cartsvc.exception.InvalidCartRequestException;
 import org.xyz.cartsvc.exception.ResourceNotFoundException;
-import org.xyz.cartsvc.mapper.CartMapper;
+import org.xyz.cartsvc.repository.CartItemRepository;
 import org.xyz.cartsvc.repository.CartRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.xyz.cartsvc.util.CartUtil.calculateCartItemTotalPrice;
@@ -34,6 +32,7 @@ public class CartServiceImpl implements CartService{
     private final CartRepository cartRepository;
     private final UserClient userClient;
     private final ProductClient productClient;
+    private final CartItemRepository cartItemRepository;
 
     public CartResponse addCartItem(CartItemRequest cartItemRequest) {
 
@@ -50,7 +49,7 @@ public class CartServiceImpl implements CartService{
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.PRODUCT_UNIT_NOT_FOUND));
 
         if (cartItemRequest.quantity() >= extProductUnitResp.stock()) {
-            throw new ProductOutOfStockException(CartErrorInfo.PRODUCT_OUT_OF_STOCK);
+            throw new InvalidCartRequestException(CartErrorInfo.PRODUCT_OUT_OF_STOCK);
         }
 
         Cart cart = cartRepository.findByUserId(extUserResp.id())
@@ -79,7 +78,7 @@ public class CartServiceImpl implements CartService{
                     var cartItemTotalPrice = item.getUnitPrice().multiply(BigDecimal.valueOf(quantity));
 
                     if (quantity >= extProductUnitResp.stock()) {
-                        throw new ProductOutOfStockException(CartErrorInfo.PRODUCT_OUT_OF_STOCK);
+                        throw new InvalidCartRequestException(CartErrorInfo.PRODUCT_OUT_OF_STOCK);
                     }
 
                     item.setQuantity(quantity);
@@ -120,10 +119,11 @@ public class CartServiceImpl implements CartService{
                                     extProductResp.images().get(0),
                                     extProductUnitResp.productUnitType(),
                                     item.getQuantity(),
-                                    item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
+                                    item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())),null
                                 )
                         )
-                        .toList()
+                        .toList(),
+                null
         );
     }
 
@@ -142,7 +142,7 @@ public class CartServiceImpl implements CartService{
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.PRODUCT_UNIT_NOT_FOUND));
 
         if (cartItemRequest.quantity() >= extProductUnitResp.stock()) {
-            throw new ProductOutOfStockException(CartErrorInfo.PRODUCT_UNIT_OUT_OF_STOCK);
+            throw new InvalidCartRequestException(CartErrorInfo.PRODUCT_UNIT_OUT_OF_STOCK);
         }
 
         Cart cart = cartRepository.findByUserId(extUserResp.id())
@@ -187,10 +187,11 @@ public class CartServiceImpl implements CartService{
                                         null,
                                         extProductUnitResp.productUnitType(),
                                         item.getQuantity(),
-                                        item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
+                                        item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())),null
                                 )
                         )
-                        .toList()
+                        .toList(),
+                null
         );
     }
 
@@ -207,6 +208,7 @@ public class CartServiceImpl implements CartService{
         var cartItems = cart.getCartItems()
                 .stream()
                 .filter(ci -> ci.getStatus() == CartItemStatus.ACTIVE)
+                .sorted(Comparator.comparing(CartItem::getId))
                 .toList();
 
         var productBatchReqs = cartItems.stream()
@@ -219,7 +221,8 @@ public class CartServiceImpl implements CartService{
                 .stream()
                 .map(entry -> new ProductBatchReq(
                             entry.getKey(),
-                            entry.getValue())
+                            entry.getValue()
+                        )
                 )
                 .toList();
 
@@ -230,46 +233,80 @@ public class CartServiceImpl implements CartService{
                 cart.getId(),
                 userExtResp.id(),
                 calculateCartItemTotalPrice(cartItems),
-                cartItemResponseMapper(cartItems, productExtRespList)
+                cartItemResponseMapper(cartItems, productExtRespList),
+                null
         );
     }
 
     @Override
-    public CartResponse convertCart(CartConvertRequest cartConvertRequest) {
+    public CartResponse convertCart(CartConvertRequest request) {
 
-        Cart cart = cartRepository.findByUserId(cartConvertRequest.userId())
+        Cart cart = cartRepository.findByUserId(request.userId())
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.USER_NOT_FOUND));
 
-        List<CartItem> cartItems = cart.getCartItems()
+        var cartItems = cartItemRepository.findByIdInAndStatus(request.cartItemIds(), CartItemStatus.ACTIVE);
+
+        if (cartItems.isEmpty()) {
+            throw new InvalidCartRequestException(CartErrorInfo.CART_ITEM_NOT_ACTIVE);
+        }
+
+        cartItems
+                .forEach(cartItem -> {
+                        cartItem.setStatus(CartItemStatus.BEGIN_CHECKOUT);
+                        cartItem.setConvertedAt(LocalDateTime.now());
+                    }
+                );
+
+        var productBatchReqs = cartItems.stream()
+                .collect(Collectors.groupingBy(
+                                CartItem::getProductId,
+                                Collectors.mapping(CartItem::getProductUnitId, Collectors.toList())
+                        )
+                )
+                .entrySet()
                 .stream()
-                .filter(cartItem -> cartConvertRequest.productId().contains(cartItem.getProductId()))
-                .peek(cartItem -> {
-                    cartItem.setStatus(CartItemStatus.BEGIN_CHECKOUT);
-                    cartItem.setConvertedAt(LocalDateTime.now());
-                })
+                .map(entry -> new ProductBatchReq(
+                                entry.getKey(),
+                                entry.getValue()
+                        )
+                )
                 .toList();
 
-        var productIds = cartItems
-                .stream()
-                .map(CartItem::getProductId)
-                .toList();
-
-        List<ProductResponse> productExtRespList = productClient.getAllProductById(productIds)
+        var productExtRespList = productClient.getAllProductByBatchIds(productBatchReqs)
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.PRODUCT_NOT_FOUND));
-
         var cartResponse = new CartResponse(
                 cart.getId(),
                 cart.getUserId(),
-                calculateCartItemTotalPrice(cartItems),
-                null
+                calculateCartItemTotalPrice(cart.getCartItems()),
+                cartItemResponseMapper(cartItems, productExtRespList),
+                CartReqStatus.CONVERSION_SUCCESS
         );
 
         cartRepository.save(cart);
-        log.info("🔁Cart item with product id of [{}] successfully converted. Message: {}", cartConvertRequest.productId(), CartItemStatus.BEGIN_CHECKOUT.getDescription());
+        log.info("🔁Cart item with product id of [{}] successfully converted. Message: ",
+                CartItemStatus.BEGIN_CHECKOUT.getDescription());
         return cartResponse;
     }
 
+    private boolean isCartItemsAvailable(CartItem cartItem, Map<Long, List<Long>> productReqs) {
+        return productReqs.containsKey(cartItem.getProductId()) &&
+                productReqs.get(cartItem.getProductId()).contains(cartItem.getProductUnitId());
+    }
+
+    private boolean isCartItemsNotCheckout(CartItem cartItem) {
+        if (cartItem.getStatus().equals(CartItemStatus.BEGIN_CHECKOUT)) {
+            throw new IllegalStateException("Cart items already checkout");
+        }
+
+        return true;
+    }
+
+
+
     private List<CartItemResponse> cartItemResponseMapper(List<CartItem> cartItems, List<ProductBatchResp> productBatchResponses) {
+        System.out.println(cartItems);
+        System.out.println(productBatchResponses);
+
         return cartItems
                 .stream()
                 .map(cartItem -> {
@@ -294,7 +331,8 @@ public class CartServiceImpl implements CartService{
                             productUnit.imageUrl(),
                             productUnit.unitType(),
                             cartItem.getQuantity(),
-                            cartItem.getTotalPrice()
+                            cartItem.getTotalPrice(),
+                            cartItem.getStatus()
                     );
                 })
                 .collect(Collectors.toList());
