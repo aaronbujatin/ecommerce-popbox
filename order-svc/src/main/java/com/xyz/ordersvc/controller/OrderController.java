@@ -22,12 +22,6 @@ public class OrderController {
     @PostMapping("/checkout")
     public ResponseEntity<OrderCheckoutResponse> checkoutOrder(@RequestBody OrderCheckoutRequest orderCheckoutRequest) {
 
-
-
-
-
-
-
         return ResponseEntity.ok(orderService.checkoutOrder(orderCheckoutRequest));
     }
 
