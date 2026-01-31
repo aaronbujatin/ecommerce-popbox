@@ -1,6 +1,7 @@
 package com.xyz.ordersvc.service;
 
 import com.xyz.ordersvc.client.CartClient;
+import com.xyz.ordersvc.client.UserClient;
 import com.xyz.ordersvc.dto.*;
 import com.xyz.ordersvc.dto.external.ConvertProductReq;
 import com.xyz.ordersvc.entity.Order;
@@ -20,16 +21,21 @@ public class OrderServiceImpl implements OrderService{
 
     private final CartClient cartClient;
     private final OrderRepository orderRepository;
+    private final UserClient userClient;
 
     @Override
     public OrderCheckoutResponse checkoutOrder(OrderCheckoutRequest checkoutRequest) {
+
+        var extUserResp = userClient.getUserByById(checkoutRequest.userId())
+                .orElseThrow(() -> new IllegalArgumentException("User id not found"));
+
 
 //        return null;
         var order = Order.builder()
                 .paymentMode(PaymentMode.CASH_ON_DELIVERY)
                 .build();
 
-        cartClient.convertCart(new ExtCartConvertRequest(checkoutRequest.userId(), checkoutRequest.cartItemIds()))
+        cartClient.convertCart(new ExtCartConvertRequest(extUserResp.id(), checkoutRequest.cartItemIds()))
                 .map(cart -> {
                     log.info("📦Status: {}, Message: {} and now on it's way.", OrderStatus.PROCESSING, OrderStatus.PROCESSING.getDescription());
                     cart.cartItems()
@@ -61,7 +67,6 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public List<OrderItemResponse> filterOrderItems(Long userId, OrderStatus orderStatus) {
-
 //        return orderRepository.findByUserIdAndOrderStatus(userId, orderStatus)
 //                .stream()
 //                .
@@ -75,7 +80,6 @@ public class OrderServiceImpl implements OrderService{
 //                                orderItem.getOrder().getOrderStatus()
 //                        )
 //                ).toList();
-
         return null;
     }
 

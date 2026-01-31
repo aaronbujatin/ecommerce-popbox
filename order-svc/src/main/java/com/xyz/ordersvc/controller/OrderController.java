@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin("*")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -22,6 +21,7 @@ public class OrderController {
 
     @PostMapping("/checkout")
     public ResponseEntity<OrderCheckoutResponse> checkoutOrder(@RequestBody OrderCheckoutRequest orderCheckoutRequest) {
+
         return ResponseEntity.ok(orderService.checkoutOrder(orderCheckoutRequest));
     }
 
