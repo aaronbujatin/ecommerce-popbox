@@ -2,11 +2,12 @@ package org.xyz.cartsvc.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.xyz.cartsvc.client.ProductClient;
 import org.xyz.cartsvc.client.UserClient;
+import org.xyz.cartsvc.client.dto.*;
 import org.xyz.cartsvc.dto.*;
-import org.xyz.cartsvc.dto.external.*;
 import org.xyz.cartsvc.entity.Cart;
 import org.xyz.cartsvc.entity.CartItem;
 import org.xyz.cartsvc.enums.CartErrorInfo;
@@ -35,31 +36,25 @@ public class CartServiceImpl implements CartService{
     private final CartItemRepository cartItemRepository;
 
     public CartResponse addCartItem(CartItemRequest cartItemRequest) {
-
-        UserResponse extUserResp = this.userClient.getUserById(cartItemRequest.userId())
+        var userResp = this.userClient.getUserById(cartItemRequest.userId())
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.USER_NOT_FOUND));
 
-        ProductResponse extProductResp = this.productClient.getProductById(cartItemRequest.productId())
-                .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.PRODUCT_NOT_FOUND));
-
-        var extProductUnitResp = extProductResp.productUnits()
-                .stream()
-                .filter(unit -> unit.id().equals(cartItemRequest.productUnitId()))
-                .findFirst()
+        var productUnitResp = productClient.getProductUnitById(cartItemRequest.productUnitId())
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.PRODUCT_UNIT_NOT_FOUND));
 
-        if (cartItemRequest.quantity() >= extProductUnitResp.stock()) {
+        if (cartItemRequest.quantity() >= productUnitResp.stock()) {
             throw new InvalidCartRequestException(CartErrorInfo.PRODUCT_OUT_OF_STOCK);
         }
 
-        Cart cart = cartRepository.findByUserId(extUserResp.id())
+        Cart cart = cartRepository.findByUserId(userResp.id())
                 .orElseGet(() -> {
-                    log.info("🛒No cart for user id [{}]. ✅Creating new cart", extUserResp.id());
+                    log.info("🛒No cart for user productUnitId [{}]. ✅Creating new cart", userResp.id());
                     var newCart = Cart
                             .builder()
-                            .userId(extUserResp.id())
+                            .userId(userResp.id())
                             .createdAt(LocalDateTime.now())
                             .updatedAt(LocalDateTime.now())
+
                             .build();
                     return cartRepository.save(newCart);
                 });
@@ -67,17 +62,16 @@ public class CartServiceImpl implements CartService{
 
         var cartItem = cart.getCartItems()
                 .stream()
-                .filter(item -> item.getProductId().equals(extProductResp.id())
-                        && item.getProductUnitId().equals(extProductUnitResp.id())
+                .filter(item -> item.getProductUnitId().equals(productUnitResp.productUnitId())
                         && item.getStatus().equals(CartItemStatus.ACTIVE)
                 )
                 .findFirst()
                 .map(item -> {
-                    log.info("🔁Updating item with product id [{}].", extProductResp.id());
+                    log.info("🔁Updating item with product productUnitId [{}].", productUnitResp.productUnitId());
                     var quantity = item.getQuantity() + cartItemRequest.quantity();
                     var cartItemTotalPrice = item.getUnitPrice().multiply(BigDecimal.valueOf(quantity));
 
-                    if (quantity >= extProductUnitResp.stock()) {
+                    if (quantity >= productUnitResp.stock()) {
                         throw new InvalidCartRequestException(CartErrorInfo.PRODUCT_OUT_OF_STOCK);
                     }
 
@@ -87,16 +81,16 @@ public class CartServiceImpl implements CartService{
                     return item;
                 })
                 .orElseGet(() -> {
-                    log.info("🙅No existing cart item for product id {}. ✅Creating new cart item", extProductResp.id());
+                    log.info("🙅No existing cart item for product productUnitId {}. ✅Creating new cart item", productUnitResp.productId());
                     return CartItem
                             .builder()
                             .cart(cart)
                             .status(CartItemStatus.ACTIVE)
-                            .productId(extProductResp.id())
-                            .unitPrice(extProductUnitResp.price())
-                            .productUnitId(extProductUnitResp.id())
+                            .productId(productUnitResp.productId())
+                            .unitPrice(productUnitResp.price())
+                            .productUnitId(productUnitResp.productUnitId())
                             .quantity(cartItemRequest.quantity())
-                            .totalPrice(calculateTotalPrice(cartItemRequest.quantity(), extProductUnitResp.price()))
+                            .totalPrice(calculateTotalPrice(cartItemRequest.quantity(), productUnitResp.price()))
                             .build();
                     }
                 );
@@ -106,7 +100,7 @@ public class CartServiceImpl implements CartService{
 
         return new CartResponse(
                 cart.getId(),
-                extUserResp.id(),
+                userResp.id(),
                 cart.getCartItems().stream().map(CartItem::getTotalPrice).reduce(BigDecimal.ZERO, BigDecimal::add),
                 cart.getCartItems()
                         .stream()
@@ -114,12 +108,13 @@ public class CartServiceImpl implements CartService{
                                     item.getId(),
                                     item.getProductId(),
                                     item.getProductUnitId(),
-                                    extProductResp.name(),
+                                    productUnitResp.name(),
                                     item.getUnitPrice(),
-                                    extProductResp.images().get(0),
-                                    extProductUnitResp.productUnitType(),
+                                    productUnitResp.images().get(0),
+                                    productUnitResp.unitType(),
                                     item.getQuantity(),
-                                    item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())),null
+                                    item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())),
+                                    item.getStatus()
                                 )
                         )
                         .toList(),
@@ -129,42 +124,35 @@ public class CartServiceImpl implements CartService{
 
     @Override
     public CartResponse removeCartItem(CartItemRequest cartItemRequest) {
-        UserResponse extUserResp = this.userClient.getUserById(cartItemRequest.userId())
+        var userResp = this.userClient.getUserById(cartItemRequest.userId())
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.USER_NOT_FOUND));
 
-        ProductResponse extProductResp = this.productClient.getProductById(cartItemRequest.productId())
-                .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.PRODUCT_NOT_FOUND));
-
-        var extProductUnitResp = extProductResp.productUnits()
-                .stream()
-                .filter(unit -> unit.id().equals(cartItemRequest.productUnitId()))
-                .findFirst()
+        var extProductUnitResp = productClient.getProductUnitById(cartItemRequest.productUnitId())
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.PRODUCT_UNIT_NOT_FOUND));
 
         if (cartItemRequest.quantity() >= extProductUnitResp.stock()) {
             throw new InvalidCartRequestException(CartErrorInfo.PRODUCT_UNIT_OUT_OF_STOCK);
         }
 
-        Cart cart = cartRepository.findByUserId(extUserResp.id())
+        Cart cart = cartRepository.findByUserId(userResp.id())
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.CART_NOT_FOUND));
 
         cart.getCartItems()
                 .stream()
-                .filter(item -> item.getProductId().equals(extProductResp.id())
-                        && item.getProductUnitId().equals(extProductUnitResp.id())
+                .filter(item -> item.getProductUnitId().equals(extProductUnitResp.productUnitId())
                         && item.getStatus().equals(CartItemStatus.ACTIVE)
                 )
                 .findFirst()
                 .map(item -> {
                     if (item.getQuantity() != 1) {
-                        log.info("🔁Updating cart item quantity with product id [{}].", extProductUnitResp.id());
+                        log.info("🔁Updating cart item quantity with product productUnitId [{}].", extProductUnitResp.productUnitId());
                         var quantity = item.getQuantity() - cartItemRequest.quantity();
                         var cartItemTotalPrice = item.getUnitPrice().multiply(BigDecimal.valueOf(quantity));
                         item.setQuantity(quantity);
                         item.setTotalPrice(cartItemTotalPrice);
                         item.setUpdatedAt(LocalDateTime.now());
                     } else {
-                        log.info("✖️Removing to cart item with product id [{}].", extProductUnitResp.id());
+                        log.info("✖️Removing to cart item with product productUnitId [{}].", extProductUnitResp.productUnitId());
                         cart.removeToCart(item);
                     }
 
@@ -174,7 +162,7 @@ public class CartServiceImpl implements CartService{
 
         return new CartResponse(
                 cart.getId(),
-                extUserResp.id(),
+                userResp.id(),
                 calculateCartItemTotalPrice(cart.getCartItems()),
                 cart.getCartItems()
                         .stream()
@@ -182,10 +170,10 @@ public class CartServiceImpl implements CartService{
                                         item.getId(),
                                         item.getProductId(),
                                         item.getProductUnitId(),
-                                        extProductResp.name(),
+                                        extProductUnitResp.name(),
                                         item.getUnitPrice(),
-                                        null,
-                                        extProductUnitResp.productUnitType(),
+                                        extProductUnitResp.images().get(0),
+                                        extProductUnitResp.unitType(),
                                         item.getQuantity(),
                                         item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())),null
                                 )
@@ -197,12 +185,12 @@ public class CartServiceImpl implements CartService{
 
     @Override
     public CartResponse getCartByUserId(Long id) {
-        log.info("👤Getting the cart by user id {}", id);
+        log.info("👤Getting the cart by user productUnitId {}", id);
 
-        UserResponse userExtResp = userClient.getUserById(id)
+        var userResp = userClient.getUserById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.USER_NOT_FOUND));
 
-        Cart cart = cartRepository.findByUserId(userExtResp.id())
+        var cart = cartRepository.findByUserId(userResp.id())
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.CART_NOT_FOUND));
 
         var cartItems = cart.getCartItems()
@@ -210,30 +198,14 @@ public class CartServiceImpl implements CartService{
                 .filter(ci -> ci.getStatus() == CartItemStatus.ACTIVE)
                 .sorted(Comparator.comparing(CartItem::getId))
                 .toList();
-
-        var productBatchReqs = cartItems.stream()
-                .collect(Collectors.groupingBy(
-                        CartItem::getProductId,
-                        Collectors.mapping(CartItem::getProductUnitId, Collectors.toList())
-                    )
-                )
-                .entrySet()
-                .stream()
-                .map(entry -> new ProductBatchReq(
-                            entry.getKey(),
-                            entry.getValue()
-                        )
-                )
-                .toList();
-
-        var productExtRespList = productClient.getAllProductByBatchIds(productBatchReqs)
-                .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.PRODUCT_NOT_FOUND));
+        var productUnitIds = cart.getCartItems().stream().map(CartItem::getProductUnitId).toList();
+        var productUnitBatch = productClient.getBatchProductUnitByIds(productUnitIds).orElseThrow();
 
         return new CartResponse(
                 cart.getId(),
-                userExtResp.id(),
+                userResp.id(),
                 calculateCartItemTotalPrice(cartItems),
-                cartItemResponseMapper(cartItems, productExtRespList),
+                cartItemResponseMapper(cartItems, productUnitBatch),
                 null
         );
     }
@@ -241,7 +213,7 @@ public class CartServiceImpl implements CartService{
     @Override
     public CartResponse convertCart(CartConvertRequest request) {
 
-        Cart cart = cartRepository.findByUserId(request.userId())
+        var cart = cartRepository.findByUserId(request.userId())
                 .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.USER_NOT_FOUND));
 
         var cartItems = cartItemRepository.findByIdInAndStatus(request.cartItemIds(), CartItemStatus.ACTIVE);
@@ -257,70 +229,38 @@ public class CartServiceImpl implements CartService{
                     }
                 );
 
-        var productBatchReqs = cartItems.stream()
-                .collect(Collectors.groupingBy(
-                                CartItem::getProductId,
-                                Collectors.mapping(CartItem::getProductUnitId, Collectors.toList())
-                        )
-                )
-                .entrySet()
-                .stream()
-                .map(entry -> new ProductBatchReq(
-                                entry.getKey(),
-                                entry.getValue()
-                        )
-                )
-                .toList();
+        var productUnitIds = cart.getCartItems().stream().map(CartItem::getProductUnitId).toList();
+        var productUnitBatch = productClient.getBatchProductUnitByIds(productUnitIds).orElseThrow();
 
-        var productExtRespList = productClient.getAllProductByBatchIds(productBatchReqs)
-                .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.PRODUCT_NOT_FOUND));
         var cartResponse = new CartResponse(
                 cart.getId(),
                 cart.getUserId(),
                 calculateCartItemTotalPrice(cart.getCartItems()),
-                cartItemResponseMapper(cartItems, productExtRespList),
+                cartItemResponseMapper(cartItems, productUnitBatch),
                 CartReqStatus.CONVERSION_SUCCESS
         );
 
         cartRepository.save(cart);
-        log.info("🔁Cart item with product id of [{}] successfully converted. Message: ",
+        log.info("🔁Cart item with product productUnitId of [{}] successfully converted. Message: ",
                 CartItemStatus.BEGIN_CHECKOUT.getDescription());
         return cartResponse;
     }
 
-    private boolean isCartItemsAvailable(CartItem cartItem, Map<Long, List<Long>> productReqs) {
-        return productReqs.containsKey(cartItem.getProductId()) &&
-                productReqs.get(cartItem.getProductId()).contains(cartItem.getProductUnitId());
-    }
 
-    private boolean isCartItemsNotCheckout(CartItem cartItem) {
-        if (cartItem.getStatus().equals(CartItemStatus.BEGIN_CHECKOUT)) {
-            throw new IllegalStateException("Cart items already checkout");
-        }
-
-        return true;
-    }
-
-
-
-    private List<CartItemResponse> cartItemResponseMapper(List<CartItem> cartItems, List<ProductBatchResp> productBatchResponses) {
-        System.out.println(cartItems);
-        System.out.println(productBatchResponses);
-
+    private List<CartItemResponse> cartItemResponseMapper(
+            List<CartItem> cartItems,
+            List<ProductBatchResp> productBatchResponses
+    ) {
         return cartItems
                 .stream()
                 .map(cartItem -> {
                     var productBatchResp = productBatchResponses
                             .stream()
-                            .filter(product -> product.id().equals(cartItem.getProductId()))
+                            .filter(item ->
+                                    item.productUnitId().equals(cartItem.getProductUnitId())
+                            )
                             .findFirst()
                             .orElseThrow();
-
-                    var productUnit = productBatchResp.productUnits()
-                            .stream()
-                            .filter(productUnitBatchResp -> productUnitBatchResp.id().equals(cartItem.getProductUnitId()))
-                            .findFirst()
-                            .orElseThrow(() -> new ResourceNotFoundException(CartErrorInfo.PRODUCT_UNIT_NOT_FOUND));
 
                     return new CartItemResponse(
                             cartItem.getId(),
@@ -328,8 +268,8 @@ public class CartServiceImpl implements CartService{
                             cartItem.getProductUnitId(),
                             productBatchResp.name(),
                             cartItem.getUnitPrice(),
-                            productUnit.imageUrl(),
-                            productUnit.unitType(),
+                            productBatchResp.images().get(0),
+                            productBatchResp.unitType(),
                             cartItem.getQuantity(),
                             cartItem.getTotalPrice(),
                             cartItem.getStatus()

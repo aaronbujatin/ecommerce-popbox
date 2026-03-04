@@ -23,15 +23,17 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping("/items/increment")
-    public ResponseEntity<CartResponse> addCartItem(@RequestBody CartItemRequest cartItemRequest) {
+    public ResponseEntity<String> addCartItem(@RequestBody CartItemRequest cartItemRequest) {
         log.info("Receiving request {}", cartItemRequest);
-        return ResponseEntity.ok(cartService.addCartItem(cartItemRequest));
+        cartService.addCartItem(cartItemRequest);
+        return ResponseEntity.ok("Successfully added to the cart");
     }
 
     @PostMapping("/items/decrement")
-    public ResponseEntity<CartResponse> removeCartItem(@RequestBody CartItemRequest cartItemRequest) {
+    public ResponseEntity<String> removeCartItem(@RequestBody CartItemRequest cartItemRequest) {
         log.info("Receiving request {}", cartItemRequest);
-        return ResponseEntity.ok(cartService.removeCartItem(cartItemRequest));
+        cartService.removeCartItem(cartItemRequest);
+        return ResponseEntity.ok("Successfully removed from cart");
     }
 
     @GetMapping("/items/user/{userId}")
@@ -44,19 +46,5 @@ public class CartController {
         return ResponseEntity.ok(cartService.convertCart(cartConvertRequest));
     }
 
-
-
-//    @GetMapping("/items/user/test")
-//    public ResponseEntity<CartResponse> test() {
-//
-//        var cart = new CartResponse(1L, 1L, BigDecimal.valueOf(10.00),
-//                List.of(
-//                        new CartItemResponse(1L, 1L, "test name", BigDecimal.valueOf(1000.00), "test image", 10, BigDecimal.valueOf(1000.00)),
-//                        new CartItemResponse(2L, 2L, "test name", BigDecimal.valueOf(1000.00), "test image", 10, BigDecimal.valueOf(1000.00))
-//                    )
-//                );
-//
-//        return ResponseEntity.ok(cartService.convertCart(cartConvertRequest));
-//    }
 
 }

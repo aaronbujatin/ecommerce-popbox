@@ -3,7 +3,7 @@ package org.xyz.cartsvc.client;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.xyz.cartsvc.dto.external.UserResponse;
+import org.xyz.cartsvc.client.dto.UserResponse;
 
 import java.util.Optional;
 

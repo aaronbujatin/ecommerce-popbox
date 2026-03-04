@@ -3,7 +3,7 @@ package org.xyz.cartsvc.client.config;
 import feign.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.xyz.cartsvc.client.logger.FeignClientLogger;
+import org.xyz.cartsvc.client.util.FeignClientLogger;
 
 @Configuration
 public class FeignClientConfig {
