@@ -23,4 +23,5 @@ public record ProductRequest(
         Long categoryId,
         List<ProductUnitRequest> productUnitRequests
 ) {
+
 }

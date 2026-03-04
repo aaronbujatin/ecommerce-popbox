@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum ProductErrorInfo {
 
     PRODUCT_NOT_FOUND("PR0404", "Product not found"),
-
+    PRODUCT_UNIT_NOT_FOUND("PR0405", "Product unit not found"),
     //EXTERNAL
     CATEGORY_NOT_FOUND("CT0404", "Category not found");
 
