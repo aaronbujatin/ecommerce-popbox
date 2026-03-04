@@ -6,9 +6,9 @@ import lombok.Getter;
 public enum CartErrorInfo {
 
    CART_NOT_FOUND("PR0404", "Cart not found"),
-   USER_NOT_FOUND("PR0405", "User id not found"),
-   PRODUCT_NOT_FOUND("PR0406", "Product id not found"),
-   PRODUCT_UNIT_NOT_FOUND("PR0408", "Product unit id not found"),
+   USER_NOT_FOUND("PR0405", "User productUnitId not found"),
+   PRODUCT_NOT_FOUND("PR0406", "Product productUnitId not found"),
+   PRODUCT_UNIT_NOT_FOUND("PR0408", "Product unit productUnitId not found"),
    PRODUCT_OUT_OF_STOCK("PR0407", "Product out of stock"),
    PRODUCT_UNIT_OUT_OF_STOCK("PR0409", "Product unit out of stock"),
    CART_NOT_ACTIVE("PR0408", "Cart is not active"),

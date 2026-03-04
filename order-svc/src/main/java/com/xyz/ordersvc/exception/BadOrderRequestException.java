@@ -4,11 +4,11 @@ import com.xyz.ordersvc.enums.OrderErrorInfo;
 import lombok.Getter;
 
 @Getter
-public class InvalidOrderRequestException extends RuntimeException{
+public class BadOrderRequestException extends RuntimeException{
 
     private final OrderErrorInfo orderErrorInfo;
 
-    public InvalidOrderRequestException(OrderErrorInfo orderErrorInfo) {
+    public BadOrderRequestException(OrderErrorInfo orderErrorInfo) {
         super(orderErrorInfo.getMessage());
         this.orderErrorInfo = orderErrorInfo;
     }

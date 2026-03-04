@@ -1,4 +1,4 @@
-package org.xyz.cartsvc.dto.external;
+package org.xyz.cartsvc.client.dto;
 
 import java.math.BigDecimal;
 import java.util.List;

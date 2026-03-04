@@ -5,6 +5,7 @@ import feign.Request;
 import feign.Response;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class FeignClientLogger extends Logger {
@@ -37,7 +38,7 @@ public class FeignClientLogger extends Logger {
         log.info("Receiving API ➡️ [Status: {}] [Header: {}] [Request body: {}]",
                 response.status(),
                 response.headers(),
-                response.body()
+                new String(response.body().asInputStream().readAllBytes(), StandardCharsets.UTF_8)
         );
         return response;
     }

@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cart-svc.main.iml" filepath="$PROJECT_DIR$/.idea/modules/cart-svc.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/ecommerce-popbox.iml" filepath="$PROJECT_DIR$/.idea/ecommerce-popbox.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/product-svc.main.iml" filepath="$PROJECT_DIR$/.idea/modules/product-svc.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/user-svc.main.iml" filepath="$PROJECT_DIR$/.idea/modules/user-svc.main.iml" />
     </modules>
   </component>
 </project>

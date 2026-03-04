@@ -3,16 +3,15 @@ package org.xyz.productsvc.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.xyz.productsvc.dto.ProductRequest;
-import org.xyz.productsvc.dto.ProductResponse;
-import org.xyz.productsvc.dto.ProductBatchReq;
-import org.xyz.productsvc.dto.ProductUnitResponse;
+import org.xyz.productsvc.dto.*;
 import org.xyz.productsvc.entity.Product;
 import org.xyz.productsvc.enums.ProductErrorInfo;
 import org.xyz.productsvc.exception.ResourceNotFoundException;
 import org.xyz.productsvc.mapper.ProductMapper;
 import org.xyz.productsvc.repository.ProductRepository;
+import org.xyz.productsvc.repository.projections.ProductCartRespProjection;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -25,7 +24,6 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public void createProduct(ProductRequest productRequest) {
-
         log.info("Creating product with name: {}", productRequest.name());
         productRepository.save(productMapper.mapToProduct(productRequest));
     }
@@ -83,6 +81,48 @@ public class ProductServiceImpl implements ProductService{
         return List.of();
     }
 
+//    @Override
+//    public List<ProductCartResp> getAllProductUnitById(List<Long> ids) {
+//        return productRepository.findAllProductUnitById(ids)
+//                .stream()
+//                .map(product -> new ProductCartResp(
+//                        product.productId(),
+//                        product.productUnitId(),
+//                        product.name(),
+//                        product.price(),
+//                        product.unitType(),
+//                        product.stock(),
+//                        product.description(),
+//                        convertImages(product.images()).toString()
+//                ))
+//                .toList();
+//    }
+
+    @Override
+    public List<ProductCartResp> getAllProductUnitById(List<Long> productUnitIds) {
+        return productRepository.findAllProductUnitById(productUnitIds)
+                .stream()
+                .map(product -> new ProductCartResp(
+                        product.getProductId(),
+                        product.getId(),
+                        product.getName(),
+                        product.getPrice(),
+                        product.getProductUnitType(),
+                        product.getStock(),
+                        product.getDescription(),
+                        product.getImages()
+                ))
+                .toList();
+    }
+
+    @Override
+    public ProductCartResp getProductUnitByProductId(Long productUnitId) {
+        var productCartRespProjection = productRepository.findProductUnitById(productUnitId)
+                .orElseThrow(() -> new ResourceNotFoundException(ProductErrorInfo.PRODUCT_UNIT_NOT_FOUND));
+
+        return mapToProductCartResp(productCartRespProjection);
+    }
+
     private ProductResponse mapToProductResponse(Product product){
 
         return new ProductResponse(
@@ -103,6 +143,33 @@ public class ProductServiceImpl implements ProductService{
                         )
                         .toList()
         );
+    }
+
+    private ProductCartResp mapToProductCartResp(ProductCartRespProjection productCartRespProjection) {
+        return new ProductCartResp(
+                productCartRespProjection.getProductId(),
+                productCartRespProjection.getId(),
+                productCartRespProjection.getName(),
+                productCartRespProjection.getPrice(),
+                productCartRespProjection.getProductUnitType(),
+                productCartRespProjection.getStock(),
+                productCartRespProjection.getDescription(),
+                productCartRespProjection.getImages()
+        );
+    }
+
+    private List<String> convertImages(String dbValue) {
+        if (dbValue == null) return List.of();
+
+        // If stored like: ["img1.jpg","img2.jpg"]
+        return Arrays.stream(
+                        dbValue.replace("[", "")
+                                .replace("]", "")
+                                .replace("\"", "")
+                                .split(",")
+                ).map(String::trim)
+                .filter(s -> !s.isBlank())
+                .toList();
     }
 
 

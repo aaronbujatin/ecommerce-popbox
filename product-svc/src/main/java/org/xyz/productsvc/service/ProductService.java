@@ -1,9 +1,7 @@
 package org.xyz.productsvc.service;
 
 
-import org.xyz.productsvc.dto.ProductRequest;
-import org.xyz.productsvc.dto.ProductResponse;
-import org.xyz.productsvc.dto.ProductBatchReq;
+import org.xyz.productsvc.dto.*;
 
 import java.util.List;
 
@@ -13,5 +11,7 @@ public interface ProductService {
     ProductResponse getProductById(Long id);
     List<ProductResponse> getAllProducts();
     List<ProductResponse> getAllProductsByFilter(List<ProductBatchReq> productBatchReqs);
-
+//    List<ProductCartResp> getAllProductUnitById(List<Long> ids);
+    List<ProductCartResp> getAllProductUnitById(List<Long> productUnitIds);
+    ProductCartResp getProductUnitByProductId(Long productId);
 }

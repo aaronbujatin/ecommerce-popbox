@@ -26,16 +26,14 @@ public class OrderServiceImpl implements OrderService{
     @Override
     public OrderCheckoutResponse checkoutOrder(OrderCheckoutRequest checkoutRequest) {
 
-        var extUserResp = userClient.getUserByById(checkoutRequest.userId())
+        var userResp = userClient.getUserByById(checkoutRequest.userId())
                 .orElseThrow(() -> new IllegalArgumentException("User id not found"));
 
-
-//        return null;
         var order = Order.builder()
                 .paymentMode(PaymentMode.CASH_ON_DELIVERY)
                 .build();
 
-        cartClient.convertCart(new ExtCartConvertRequest(extUserResp.id(), checkoutRequest.cartItemIds()))
+        cartClient.convertCart(new ExtCartConvertRequest(userResp.id(), checkoutRequest.cartItemIds()))
                 .map(cart -> {
                     log.info("📦Status: {}, Message: {} and now on it's way.", OrderStatus.PROCESSING, OrderStatus.PROCESSING.getDescription());
                     cart.cartItems()
@@ -67,6 +65,9 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public List<OrderItemResponse> filterOrderItems(Long userId, OrderStatus orderStatus) {
+
+//        var test = orderRepository.findByUserIdAndOrderStatus();
+
 //        return orderRepository.findByUserIdAndOrderStatus(userId, orderStatus)
 //                .stream()
 //                .

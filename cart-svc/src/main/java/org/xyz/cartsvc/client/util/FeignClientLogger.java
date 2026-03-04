@@ -1,4 +1,4 @@
-package org.xyz.cartsvc.client.logger;
+package org.xyz.cartsvc.client.util;
 
 import feign.Logger;
 import feign.Request;
@@ -6,6 +6,7 @@ import feign.Response;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class FeignClientLogger extends Logger {
@@ -34,13 +35,21 @@ public class FeignClientLogger extends Logger {
 
     @Override
     protected Response logAndRebufferResponse(String configKey, Level logLevel,
-                                              Response response, long elapsedTime) {
+                                              Response response, long elapsedTime) throws IOException {
+        // Read the response body
+        byte[] bodyData = response.body().asInputStream().readAllBytes();
+
+        // Log the response with the body content
         log.info("Receiving API ➡️ [Status: {}] [Header: {}] [Request body: {}]",
                 response.status(),
                 response.headers(),
-                response.body()
+                new String(bodyData, StandardCharsets.UTF_8)
         );
-        return response;
+
+        // Rebuffer the response with the read body data
+        return response.toBuilder()
+                .body(bodyData)
+                .build();
     }
 
 }

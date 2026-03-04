@@ -1,8 +1,8 @@
 package com.xyz.ordersvc.exception.handler;
 
 import com.xyz.ordersvc.dto.ApiErrorResponse;
-import com.xyz.ordersvc.exception.InvalidOrderRequestException;
-import jakarta.servlet.http.HttpServletRequest;
+import com.xyz.ordersvc.exception.BadOrderRequestException;
+import com.xyz.ordersvc.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +15,6 @@ import java.time.Instant;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-
 
     @ExceptionHandler({
             MethodArgumentNotValidException.class,
@@ -31,18 +29,16 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST
         );
 
-        logApiErrorResponse(apiErrorResponse);
-
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(apiErrorResponse);
     }
 
     @ExceptionHandler({
-            InvalidOrderRequestException.class
+            BadOrderRequestException.class
     })
     public ResponseEntity<ApiErrorResponse> handleInvalidCartRequestException(
-            InvalidOrderRequestException ex) {
+            BadOrderRequestException ex) {
 
         var apiErrorResponse = new ApiErrorResponse(
                 ex.getOrderErrorInfo().getCode(),
@@ -51,17 +47,27 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST
         );
 
-        logApiErrorResponse(apiErrorResponse);
-
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(apiErrorResponse);
     }
 
-    private void logApiErrorResponse(ApiErrorResponse apiErrorResponse) {
-        log.warn("Exception occur, returning error response : {}", apiErrorResponse);
+    @ExceptionHandler({
+            ResourceNotFoundException.class
+    })
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFoundException(
+            BadOrderRequestException ex) {
+
+        var apiErrorResponse = new ApiErrorResponse(
+                ex.getOrderErrorInfo().getCode(),
+                ex.getOrderErrorInfo().getMessage(),
+                Instant.now(),
+                HttpStatus.NOT_FOUND
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(apiErrorResponse);
     }
-
-
 
 }
