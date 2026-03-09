@@ -13,5 +13,5 @@ public interface ProductService {
     List<ProductResponse> getAllProductsByFilter(List<ProductBatchReq> productBatchReqs);
 //    List<ProductCartResp> getAllProductUnitById(List<Long> ids);
     List<ProductCartResp> getAllProductUnitById(List<Long> productUnitIds);
-    ProductCartResp getProductUnitByProductId(Long productId);
+    ProductCartResp getProductUnitById(Long productId);
 }

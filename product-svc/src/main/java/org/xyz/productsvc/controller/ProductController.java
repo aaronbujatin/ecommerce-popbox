@@ -72,7 +72,7 @@ public class ProductController {
 
     @GetMapping("/unit/{productUnitId}")
     public ResponseEntity<ProductCartResp> getProductUnitByProductId(@PathVariable Long productUnitId) {
-        var body = productService.getProductUnitByProductId(productUnitId);
+        var body = productService.getProductUnitById(productUnitId);
         return ResponseEntity.ok(body);
     }
 

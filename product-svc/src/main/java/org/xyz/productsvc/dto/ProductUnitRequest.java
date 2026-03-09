@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 public record ProductUnitRequest(
         ProductUnitType productUnitType,
         BigDecimal price,
-        int stock,
-        int quantity
+        String imageUrl,
+        int stock
 ) {
 }

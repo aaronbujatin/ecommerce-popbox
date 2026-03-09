@@ -51,5 +51,23 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     )
     Optional<ProductCartRespProjection> findProductUnitById(@Param("productUnitId") Long productUnitId);
 
+    @Query(value =
+            """
+            SELECT pu.id as id,
+                   pu.product_id as productId,
+                   p.name as name,
+                   pu.price as price,
+                   pu.product_unit_type as productUnitType,
+                   pu.stock as stock,
+                   p.description as description,
+                   p.images as images
+            FROM public.product_unit pu
+            JOIN public.product p ON pu.product_id = p.id
+            WHERE pu.id = :productUnitId
+            """,
+            nativeQuery = true
+        )
+    Optional<ProductCartRespRecord> findProductUnitByIdRecord(@Param("productUnitId") Long productUnitId);
+
 
 }
