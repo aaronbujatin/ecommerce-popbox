@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: api-gateway
+
+security:
+  jwt:
+    secret-key: ${JWT_SECRET_KEY}
+    expiration-time: 900000
