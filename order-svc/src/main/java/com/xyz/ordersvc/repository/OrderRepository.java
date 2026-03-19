@@ -10,5 +10,4 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByUserIdAndOrderStatus(Long userId, OrderStatus orderStatus);
-    void finalizeOrderStatus();
 }

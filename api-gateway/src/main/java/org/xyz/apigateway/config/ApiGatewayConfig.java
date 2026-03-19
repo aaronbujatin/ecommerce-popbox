@@ -38,7 +38,8 @@ public class ApiGatewayConfig {
                             .PUT("/{id}", http())
                             .DELETE("/{id}", http())
                     ).before(uri("http://localhost:8085")).build()
-                );
+                )
+                ;
     }
 
 }
