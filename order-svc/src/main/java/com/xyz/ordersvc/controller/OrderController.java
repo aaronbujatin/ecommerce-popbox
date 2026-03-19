@@ -56,4 +56,10 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
+    @PostMapping("/checkout/finalize-status")
+    public ResponseEntity<OrderCheckoutResponse> checkoutFinalizeStatus(@RequestBody OrderCheckoutRequest orderCheckoutRequest) {
+
+        return ResponseEntity.ok(orderService.checkoutOrder(orderCheckoutRequest));
+    }
+
 }
