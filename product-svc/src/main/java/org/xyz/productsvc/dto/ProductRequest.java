@@ -17,8 +17,6 @@ public record ProductRequest(
         @Min(message = "invalid price", value = 1)
         BigDecimal price,
         List<@NotEmpty(message = "image address is required") String> images,
-        @Min(message = "invalid stock", value = 1)
-        int stock,
         @NotNull(message = "category id is required")
         Long categoryId,
         List<ProductUnitRequest> productUnitRequests

@@ -1,16 +1,17 @@
-package org.xyz.productsvc.dto;
+package org.xyz.productsvc.repository;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-public record ProductCartResp(
+public record ProductCartRespRecord(
+        Long id,
         Long productId,
-        Long productUnitId,
         String name,
         BigDecimal price,
-        String unitType,
-        int stock,
+        String productUnitType,
+        Integer stock,
         String description,
         List<String> images
 ) {
+
 }

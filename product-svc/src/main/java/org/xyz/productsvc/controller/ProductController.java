@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.xyz.productsvc.dto.*;
 import org.xyz.productsvc.repository.ProductRepository;
@@ -21,9 +22,10 @@ public class ProductController {
     private final ProductService productService;
     private final ProductRepository productRepository;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<String> createProduct(@RequestBody @Valid ProductRequest productRequest) {
-        productService.createProduct(productRequest);
+//        productService.createProduct(productRequest);
         return ResponseEntity.ok("product successfully saved");
     }
 
@@ -72,7 +74,7 @@ public class ProductController {
 
     @GetMapping("/unit/{productUnitId}")
     public ResponseEntity<ProductCartResp> getProductUnitByProductId(@PathVariable Long productUnitId) {
-        var body = productService.getProductUnitByProductId(productUnitId);
+        var body = productService.getProductUnitById(productUnitId);
         return ResponseEntity.ok(body);
     }
 

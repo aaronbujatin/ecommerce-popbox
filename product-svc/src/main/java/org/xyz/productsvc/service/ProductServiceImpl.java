@@ -8,6 +8,7 @@ import org.xyz.productsvc.entity.Product;
 import org.xyz.productsvc.enums.ProductErrorInfo;
 import org.xyz.productsvc.exception.ResourceNotFoundException;
 import org.xyz.productsvc.mapper.ProductMapper;
+import org.xyz.productsvc.repository.ProductCartRespRecord;
 import org.xyz.productsvc.repository.ProductRepository;
 import org.xyz.productsvc.repository.projections.ProductCartRespProjection;
 
@@ -116,15 +117,13 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public ProductCartResp getProductUnitByProductId(Long productUnitId) {
+    public ProductCartResp getProductUnitById(Long productUnitId) {
         var productCartRespProjection = productRepository.findProductUnitById(productUnitId)
                 .orElseThrow(() -> new ResourceNotFoundException(ProductErrorInfo.PRODUCT_UNIT_NOT_FOUND));
-
         return mapToProductCartResp(productCartRespProjection);
     }
 
     private ProductResponse mapToProductResponse(Product product){
-
         return new ProductResponse(
                 product.getId(),
                 product.getName(),
@@ -158,6 +157,19 @@ public class ProductServiceImpl implements ProductService{
         );
     }
 
+    private ProductCartResp mapToProductCartResp(ProductCartRespRecord productCartRespRecord) {
+        return new ProductCartResp(
+                productCartRespRecord.id(),
+                productCartRespRecord.productId(),
+                productCartRespRecord.name(),
+                productCartRespRecord.price(),
+                productCartRespRecord.productUnitType(),
+                productCartRespRecord.stock(),
+                productCartRespRecord.description(),
+                productCartRespRecord.images()
+        );
+    }
+
     private List<String> convertImages(String dbValue) {
         if (dbValue == null) return List.of();
 
@@ -170,6 +182,13 @@ public class ProductServiceImpl implements ProductService{
                 ).map(String::trim)
                 .filter(s -> !s.isBlank())
                 .toList();
+    }
+
+    private List<String> parseImages(String images) {
+        if (images == null) return List.of();
+        // if stored as Postgres array e.g. {"img1.png","img2.png"}
+        return Arrays.asList(images.replaceAll("[{}\"']", "").split(","));
+        // if stored as JSON array e.g. ["img1.png","img2.png"], use ObjectMapper instead
     }
 
 
