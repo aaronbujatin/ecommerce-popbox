@@ -1,6 +1,5 @@
 package org.xyz.authsvc.dto;
 
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -16,7 +15,7 @@ public class AuthUserDetails implements UserDetails {
     }
 
     @Override
-    public @Nullable String getPassword() {
+    public  String getPassword() {
         return "";
     }
 

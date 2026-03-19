@@ -1,4 +1,4 @@
-package org.xyz.authsvc.config;
+package org.xyz.authsvc.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,11 +14,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.xyz.authsvc.service.jwt.JwtAuthenticationFilter;
 import org.xyz.authsvc.service.userdetails.CustomerUserDetailService;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Configuration
@@ -37,7 +34,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/otp/send",
                                 "/api/v1/auth/otp/verify",
-                                ""
+                                "/api/v1/auth/signin"
                             )
                         .permitAll()
                         .anyRequest().authenticated()
