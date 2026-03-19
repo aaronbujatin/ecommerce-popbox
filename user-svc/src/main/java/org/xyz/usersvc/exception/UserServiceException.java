@@ -7,4 +7,8 @@ public class UserServiceException extends RuntimeException{
 
 //    private final UserErrorInfo userErrorInfo;
 
+    public UserServiceException(String message) {
+        super(message);
+    }
+
 }

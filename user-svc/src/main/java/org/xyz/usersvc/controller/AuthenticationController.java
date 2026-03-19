@@ -19,8 +19,6 @@ import org.xyz.usersvc.service.auth.AuthenticationCustomerService;
 @RequestMapping("/api/v1/auth")
 public class AuthenticationController {
 
-
-    private final CustomerRepository customerRepository;
     private final AuthenticationCustomerService authenticationCustomerService;
 
     @PostMapping("/signup")

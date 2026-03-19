@@ -1,15 +1,17 @@
 package org.xyz.usersvc.service.customer;
 
-import org.xyz.usersvc.dto.RegisterCustomerRequest;
-import org.xyz.usersvc.dto.CustomerResponse;
+import org.xyz.usersvc.dto.*;
 
 import java.util.List;
 
 public interface CustomerService {
 
-    CustomerResponse createCustomer(RegisterCustomerRequest registerCustomerRequest);
-    CustomerResponse getUserById(Long id);
+    void createCustomer(CustomerSignupReq customerSignupReq);
+    CustomerResponse getCustomerById(Long id);
+    CustomerResponse getAuthCustomerByEmail(String email);
     List<CustomerResponse> getAllUsers();
     CustomerResponse updateUser(RegisterCustomerRequest registerCustomerRequest);
     String deleteUserById(Long id);
+    CustomerResponse getAuthLoginInfo(LoginCustomerRequest customerRequest);
 }
+
