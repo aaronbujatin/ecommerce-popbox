@@ -34,7 +34,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/otp/send",
                                 "/api/v1/auth/otp/verify",
-                                "/api/v1/auth/signin"
+                                "/api/v1/auth/signin",
+                                "/api/v1/auth/refresh-token"
                             )
                         .permitAll()
                         .anyRequest().authenticated()

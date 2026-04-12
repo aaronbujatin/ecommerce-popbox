@@ -6,11 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.xyz.authsvc.dto.AuthTokenResp;
-import org.xyz.authsvc.dto.SignInReq;
-import org.xyz.authsvc.dto.SignInTokenResp;
-import org.xyz.authsvc.dto.SignupReq;
+import org.xyz.authsvc.dto.*;
 //import org.xyz.authsvc.service.NotificationService;
+import org.xyz.authsvc.service.AuthService;
 import org.xyz.authsvc.service.impl.AuthenticationServiceImpl;
 
 @RequiredArgsConstructor
@@ -20,7 +18,7 @@ public class AuthenticationController {
 
 //    private final NotificationService notificationService;
     private final AuthenticationServiceImpl authenticationCustomerService;
-
+    private final AuthService authService;
 //    @PostMapping("/otp/send")
 //    public String sendOtp(@RequestParam String recipient) {
 //        var otp = notificationService.sendOtp(recipient);
@@ -37,14 +35,20 @@ public class AuthenticationController {
 
     @PostMapping("/signup")
     public ResponseEntity<String> signupCustomer(@Valid @RequestBody SignupReq signupReq) throws BadRequestException, JsonProcessingException {
-        authenticationCustomerService.signup(signupReq);
+        authenticationCustomerService.signupCustomer(signupReq);
 
         return ResponseEntity.ok("User saved");
     }
 
     @PostMapping("/signin")
     public ResponseEntity<SignInTokenResp> loginAuthenticate(@Valid @RequestBody SignInReq signInReq) {
-        return ResponseEntity.ok(authenticationCustomerService.signIn(signInReq));
+        return ResponseEntity.ok(authenticationCustomerService.signInCustomer(signInReq));
+    }
+
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthTokenResp> createRefreshToken(@Valid @RequestBody RefreshTokenReq refreshTokenReq) {
+            return ResponseEntity.ok(authService.refreshToken(refreshTokenReq));
     }
 
 

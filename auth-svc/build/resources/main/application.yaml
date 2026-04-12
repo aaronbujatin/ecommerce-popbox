@@ -1,10 +1,21 @@
 server:
   port: 8085
 spring:
-  config:
-    import: optional:file:.env[.properties]
 #  application:
 #    name: demo
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dbauth
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: never
   mail:
     host: smtp.gmail.com
     port: 587
@@ -25,19 +36,8 @@ security:
   jwt:
     secret-key: ${JWT_SECRET_KEY}
     expiration-time: 900000
-#  datasource:
-#    url: jdbc:postgresql://localhost:5432/dbproduct
-#    username: postgres
-#    password: postgres
-#    driver-class-name: org.postgresql.Driver
-#  jpa:
-#    hibernate:
-#      ddl-auto: update
-#    show-sql: false
-#    defer-datasource-initialization: true
-#  sql:
-#    init:
-#      mode: never
+    refresh-token-expiry-time: 604800000
+
 
 api:
   product:
